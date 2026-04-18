@@ -1,6 +1,5 @@
 # OceanAI🌊
-A domain specific chatbot based on a fine-tuned LLM and RAG to answer marine knowledge questions.
-It is an open source project that finetunes large language models on marine biology, oceanography, and ocean ecosystems, the project follows an iterative approach, each version improves the model through techniques.
+A domain specific chatbot based on a finetuned LLM and RAG, designed to answer questions about marine knowledge. This open source project finetunes large language models on marine biology, oceanography, and ocean ecosystems. It follows an iterative development approach, with each version improving the model through better techniques and refinements.
 
 ### Data
 Built from open-source marine content:
