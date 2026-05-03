@@ -22,7 +22,7 @@ from config import (
 TOKEN_ENCODER = tiktoken.encoding_for_model("gpt-3.5-turbo")
 
 
-# ── tokenizer helpers ────────────────────────────────────────
+# tokenizer helpers 
 
 def token_length(text: str) -> int:
     return len(TOKEN_ENCODER.encode(text, disallowed_special=()))
@@ -32,7 +32,37 @@ def truncate_to_tokens(text: str, max_tokens: int) -> str:
     return TOKEN_ENCODER.decode(tokens[:max_tokens])
 
 
-# ── PDF extraction + cleanup ─────────────────────────────────
+# article cleanup 
+
+def remove_references_section(text: str) -> str:
+    # cut at a known section heading
+    heading_pattern = re.compile(
+        r'[\s\d]*('
+        r'References and Notes|References|Bibliography|Works Cited'
+        r'|Literature Cited|Supplementary Materials?|Supplementary Information'
+        r'|Supporting Information|Acknowledgements?|Competing interests'
+        r'|Author contributions|Data availability|Code availability'
+        r'|© The Author'
+        r')\b.*',
+        re.IGNORECASE | re.DOTALL,
+    )
+    cut = heading_pattern.sub("", text).strip()
+    if len(cut) < len(text) * 0.95:
+        return cut
+
+    # find first reference entry pattern in last 40% of document
+    # handles: "[1] Author" or "1. Author" styles
+    cutoff = int(len(text) * 0.60)
+    tail   = text[cutoff:]
+    match  = re.search(
+        r'\n(\[\d+\]|\d+\.)\s+[A-Z][a-zA-Z\-]+,?\s+[A-Z].*',
+        tail, re.DOTALL,
+    )
+    if match:
+        return text[:cutoff + match.start()].strip()
+
+    return text
+
 
 def load_and_clean_pdf(file_path: str) -> str:
     pages = []
@@ -41,19 +71,16 @@ def load_and_clean_pdf(file_path: str) -> str:
         pages.append(page.extract_text() or "")
     text = "\n".join(pages)
 
-    text = re.sub(r"arXiv:.*?\n", "", text)                               # arXiv headers
-    text = re.sub(r"(\w+)-\n(\w+)", r"\1\2", text)                        # dehyphenation
-    text = re.sub(r"(?<!\n)\n(?!\n)", " ", text)                           # soft line breaks
-    text = re.sub(r"\n{3,}", "\n\n", text)                                 # excess blank lines
-    text = re.sub(r"^\s*[\dIVXivx]+\s*$", "", text, flags=re.MULTILINE)   # page numbers
+    text = re.sub(r"arXiv:.*?\n", "", text)
+    text = re.sub(r"(\w+)-\n(\w+)", r"\1\2", text)
+    text = re.sub(r"(?<!\n)\n(?!\n)", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    text = re.sub(r"^\s*[\dIVXivx]+\s*$", "", text, flags=re.MULTILINE)
+    text = re.sub(r'(https?://)(\s*)([^\s]+(\.\s*[^\s]+)*)', lambda m: '', text)
+    text = re.sub(r'https?://\S+|www\.\S+|\S+\.com\S*', '', text)
+    text = remove_references_section(text)
 
-    # strip references section (handles "7 References and Notes" style)
-    text = re.sub(
-        r'\n+\d*\s*(References and Notes|References|Bibliography|Works Cited)\b.*',
-        "", text, flags=re.IGNORECASE | re.DOTALL,
-    )
     return text.strip()
-
 
 # LLM calls
 
@@ -110,7 +137,7 @@ def split_into_chunks(text: str, document_title: str) -> list[dict]:
         for future in as_completed(futures):
             i = futures[future]
             titles[i] = future.result()
-            print(f"    ✓ chunk {i+1}/{len(raw_texts)}: {titles[i]}")
+            print(f"✓ chunk {i+1}/{len(raw_texts)}: {titles[i]}")
 
     return [
         {"text": t, "title": title, "document_title": document_title}

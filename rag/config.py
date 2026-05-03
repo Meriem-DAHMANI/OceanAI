@@ -1,5 +1,5 @@
-PAPERS_DIR      = "oceanAI/rag/research_papers"
-VECTORSTORE_DIR = "oceanAI/rag/vectorstore"
+PAPERS_DIR      = "research_papers"
+VECTORSTORE_DIR = "vectorstore"
  
 MODEL_NAME    = "gpt-4o-mini"
 CHUNK_SIZE    = 512   # tokens

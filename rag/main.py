@@ -34,16 +34,20 @@ def process_all_papers(papers_dir: str) -> list[dict]:
         print(f"[{i}/{len(pdf_paths)}] {os.path.basename(path)}")
 
         text = load_and_clean_pdf(path)
+        import regex as re
+        for match in re.finditer(r'.{100}[Rr]eferences.{100}', text):
+            print(repr(match.group()))
+            print("---")
         if not text:
-            print("  ⚠ Skipping — no extractable text\n")
+            print(" Skipping — no extractable text\n")
             continue
 
         title  = get_document_title(text)
-        print(f"  Title: {title}")
+        print(f" Title: {title}")
 
         chunks = split_into_chunks(text, document_title=title)
         avg    = sum(token_length(c["text"]) for c in chunks) / len(chunks)
-        print(f"  → {len(chunks)} chunks, avg {avg:.0f} tokens\n")
+        print(f"{len(chunks)} chunks, avg {avg:.0f} tokens\n")
 
         all_chunks.extend(chunks)
 
@@ -55,16 +59,16 @@ def build_rag_chain(vectorstore):
     prompt = PromptTemplate(
         input_variables=["context", "question"],
         template="""
-Answer the question based only on the following context.
-If the answer is not in the context, say "I don't know".
+        Answer the question based only on the following context.
+        If the answer is not in the context, say "I don't know".
 
-Context:
-{context}
+        Context:
+        {context}
 
-Question: {question}
+        Question: {question}
 
-Answer:
-""",
+        Answer:
+        """,
     )
     retriever = vectorstore.as_retriever(search_kwargs={"k": TOP_K})
     return RetrievalQA.from_chain_type(
@@ -85,7 +89,7 @@ if __name__ == "__main__":
     parser.add_argument("--query",   type=str, default=None)
     args = parser.parse_args()
 
-    # ── load or build vectorstore ────────────────────────────
+    # load or build vectorstore
     if vectorstore_exists() and not args.rebuild:
         print("Vectorstore found — loading saved index.")
         print("Use --rebuild to reprocess all papers.\n")
@@ -96,7 +100,7 @@ if __name__ == "__main__":
         vectorstore = build_and_save_vectorstore(all_chunks)
 
     # query
-    query = args.query or "What is the role of coral reefs in marine ecosystems?"
+    query = args.query or "What is the role of coral reefs?"
     chain = build_rag_chain(vectorstore)
 
     print(f"\nQuery: {query}")
@@ -107,4 +111,4 @@ if __name__ == "__main__":
 
     print("\n--- Source Chunks ---")
     for i, doc in enumerate(response["source_documents"], 1):
-        print(f"\n[{i}] {doc.page_content[:300]}...")
+        print(f"\n[{i}] {doc.page_content[:500]}...")
