@@ -96,7 +96,7 @@ if __name__ == "__main__":
         vectorstore = load_vectorstore()
     else:
         all_chunks  = process_all_papers(PAPERS_DIR)
-        print("\nBuilding vectorstore...")
+        print("\nBuilding vectorstore")
         vectorstore = build_and_save_vectorstore(all_chunks)
 
     # query
@@ -111,4 +111,4 @@ if __name__ == "__main__":
 
     print("\n--- Source Chunks ---")
     for i, doc in enumerate(response["source_documents"], 1):
-        print(f"\n[{i}] {doc.page_content[:500]}...")
+        print(f"\n[{i}] {doc.page_content[:500]}")

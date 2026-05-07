@@ -126,7 +126,7 @@ def split_into_chunks(text: str, document_title: str) -> list[dict]:
     docs      = replace_t_with_space(docs)
     raw_texts = [d.page_content.strip() for d in docs if d.page_content.strip()]
 
-    print(f"  Generating titles for {len(raw_texts)} chunks (parallel)...")
+    print(f"  Generating titles for {len(raw_texts)} chunks (parallel)")
     titles = [""] * len(raw_texts)
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
