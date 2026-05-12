@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OceanAI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- OCEAN BACKGROUND -->
+    <div class="ocean-bg"></div>
+
+    <!-- HOME -->
+    <div class="home-screen" id="homeScreen">
+        <h1 class="title">Welcome to <span>Ocean AI</span></h1>
+
+        <div class="suggestions">
+            <div class="suggestion" onclick="fillInput('Ocean temperatures')">Ocean temperatures</div>
+            <div class="suggestion" onclick="fillInput('Marine biodiversity')">Marine biodiversity</div>
+            <div class="suggestion" onclick="fillInput('Sea level rise')">Sea level rise</div>
+            <div class="suggestion" onclick="fillInput('Ocean currents')">Ocean currents</div>
+            <div class="suggestion" onclick="fillInput('Deep sea exploration')">Deep sea exploration</div>
+        </div>
+
+        <div class="input-box">
+            <input type="text" id="homeInput" placeholder="Ask anything about the ocean..." />
+            <div class="input-footer">
+                <button class="send-btn" onclick="startChat()">Send ↑</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-screen" id="chatScreen">
+        <button class="back-btn" onclick="goHome()">← New conversation</button>
+        <div class="chat-box" id="chatBox"></div>
+        <div class="input-area-chat">
+            <div class="input-box">
+                <input type="text" id="chatInput" placeholder="Ask a follow-up..." />
+                <div class="input-footer">
+                    <button class="send-btn" onclick="sendMessage()">Send ↑</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
