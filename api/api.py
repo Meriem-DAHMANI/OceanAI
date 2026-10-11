@@ -40,8 +40,10 @@ def health():
 @app.post("/ask")
 def ask(body: Question):
     response = rag_chain.invoke({"query": body.question})
-    sources  = [doc.page_content for doc in response["source_documents"]]
+    from_papers = response["from_papers"]
+    sources     = [doc.page_content for doc in response["source_documents"]] if from_papers else []
     return {
-        "answer":  response["result"],
-        "sources": sources,
+        "answer":      response["result"],
+        "from_papers": from_papers,
+        "sources":     sources,
     }

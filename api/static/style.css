@@ -181,6 +181,14 @@ body {
     border: 1px solid rgba(255,255,255,0.5);
 }
 
+/* origin label */
+.origin-label {
+    margin-top: -1.4rem;
+    font-size: 0.75rem;
+    color: var(--text-dark);
+    opacity: 0.8;
+}
+
 /* sources */
 .sources-toggle {
     margin-top: 0.8rem;

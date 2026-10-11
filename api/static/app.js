@@ -58,6 +58,12 @@ async function ask(text) {
         botMsg.textContent = data.answer;
         chatBox.appendChild(botMsg);
 
+        // Origin label
+        const origin = document.createElement('div');
+        origin.classList.add('origin-label');
+        origin.textContent = data.from_papers ? '📄 From research papers' : '💭 General knowledge';
+        chatBox.appendChild(origin);
+
         // Sources
         if (data.sources && data.sources.length > 0) {
             const toggle = document.createElement('button');
