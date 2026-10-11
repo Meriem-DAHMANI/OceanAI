@@ -60,7 +60,8 @@ def build_rag_chain(vectorstore):
         input_variables=["context", "question"],
         template="""
         Answer the question based only on the following context.
-        If the answer is not in the context, say "I don't know".
+        If the answer is not in the context, say "I don't have a scientific paper about it " 
+        and then answer using your own knowledge anyway
 
         Context:
         {context}

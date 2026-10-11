@@ -1,5 +1,7 @@
+import os
+
 PAPERS_DIR      = "research_papers"
-VECTORSTORE_DIR = "vectorstore"
+VECTORSTORE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vectorstore")
  
 MODEL_NAME    = "gpt-4o-mini"
 CHUNK_SIZE    = 512   # tokens

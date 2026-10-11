@@ -8,7 +8,7 @@ import pypdf
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from openai import OpenAI
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 sys.path.append(os.path.abspath(".."))
