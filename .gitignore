@@ -1,0 +1,14 @@
+# secrets
+.env
+
+# OS / Python
+.DS_Store
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# generated / local data
+rag/vectorstore/
+rag/research_papers/
+rag/qa_eval_results.csv
+rag/debug.py
