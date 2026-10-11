@@ -4,9 +4,10 @@ import sys
 import argparse
 from dotenv import load_dotenv
 
+from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
-from langchain.prompts import PromptTemplate
-from langchain.chains import RetrievalQA
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableLambda
 
 from config import PAPERS_DIR, MODEL_NAME, TOP_K
 from pipeline import (
@@ -34,10 +35,6 @@ def process_all_papers(papers_dir: str) -> list[dict]:
         print(f"[{i}/{len(pdf_paths)}] {os.path.basename(path)}")
 
         text = load_and_clean_pdf(path)
-        import regex as re
-        for match in re.finditer(r'.{100}[Rr]eferences.{100}', text):
-            print(repr(match.group()))
-            print("---")
         if not text:
             print(" Skipping — no extractable text\n")
             continue
@@ -55,35 +52,48 @@ def process_all_papers(papers_dir: str) -> list[dict]:
     return all_chunks
 
 
+class RagAnswer(BaseModel):
+    answer: str = Field(description="The answer to the question")
+    from_papers: bool = Field(
+        description="True if the answer is based on the paper excerpts, "
+                    "False if it comes from general knowledge"
+    )
+
+
+RAG_PROMPT = ChatPromptTemplate.from_messages([
+    ("system",
+     "You are OceanAI, a marine science assistant.\n"
+     "You are given excerpts from scientific papers.\n\n"
+     "- If the excerpts contain the answer, answer using ONLY the excerpts "
+     "and set from_papers to true.\n"
+     "- If they don't, answer from your general knowledge and set from_papers to false.\n"
+     "Never present general knowledge as coming from the papers."),
+    ("human", "Excerpts:\n{context}\n\nQuestion: {question}"),
+])
+
+
 def build_rag_chain(vectorstore):
-    prompt = PromptTemplate(
-        input_variables=["context", "question"],
-        template="""
-        Answer the question based only on the following context.
-        If the answer is not in the context, say "I don't have a scientific paper about it " 
-        and then answer using your own knowledge anyway
-
-        Context:
-        {context}
-
-        Question: {question}
-
-        Answer:
-        """,
-    )
     retriever = vectorstore.as_retriever(search_kwargs={"k": TOP_K})
-    return RetrievalQA.from_chain_type(
-        llm=ChatOpenAI(model=MODEL_NAME, temperature=0),
-        chain_type="stuff",
-        retriever=retriever,
-        chain_type_kwargs={"prompt": prompt},
-        return_source_documents=True,
-    )
+    llm       = ChatOpenAI(model=MODEL_NAME, temperature=0).with_structured_output(RagAnswer)
+    chain     = RAG_PROMPT | llm
+
+    def run(inputs: dict) -> dict:
+        question = inputs["query"]
+        docs     = retriever.invoke(question)
+        context  = "\n\n---\n\n".join(d.page_content for d in docs)
+        output   = chain.invoke({"context": context, "question": question})
+        return {
+            "result":           output.answer,
+            "from_papers":      output.from_papers,
+            "source_documents": docs,
+        }
+
+    # same input/output keys as the old RetrievalQA chain
+    return RunnableLambda(run)
 
 
 if __name__ == "__main__":
     load_dotenv()
-    os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--rebuild", action="store_true", help="Force reprocess all PDFs")
@@ -109,6 +119,7 @@ if __name__ == "__main__":
 
     print("\n--- Answer ---")
     print(response["result"])
+    print(f"\n(from papers: {response['from_papers']})")
 
     print("\n--- Source Chunks ---")
     for i, doc in enumerate(response["source_documents"], 1):
