@@ -35,7 +35,8 @@ def truncate_to_tokens(text: str, max_tokens: int) -> str:
 # article cleanup 
 
 def remove_references_section(text: str) -> str:
-    # cut at a known section heading
+    # cut at a known section heading, only in the second half of the document,
+    # and skip in-text mentions like "(see Supplementary Material)" or "data availability."
     heading_pattern = re.compile(
         r'[\s\d]*('
         r'References and Notes|References|Bibliography|Works Cited'
@@ -43,12 +44,14 @@ def remove_references_section(text: str) -> str:
         r'|Supporting Information|Acknowledgements?|Competing interests'
         r'|Author contributions|Data availability|Code availability'
         r'|© The Author'
-        r')\b.*',
-        re.IGNORECASE | re.DOTALL,
+        r')\b(?!\s*[),.;:])',
+        re.IGNORECASE,
     )
-    cut = heading_pattern.sub("", text).strip()
-    if len(cut) < len(text) * 0.95:
-        return cut
+    match = next((m for m in heading_pattern.finditer(text) if m.start() > len(text) * 0.5), None)
+    if match:
+        cut = text[:match.start()].strip()
+        if len(cut) < len(text) * 0.95:
+            return cut
 
     # find first reference entry pattern in last 40% of document
     # handles: "[1] Author" or "1. Author" styles

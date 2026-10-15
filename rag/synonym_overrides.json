@@ -1,0 +1,25 @@
+{
+ "remove": [
+  "minor flooding threshold",
+  "mean absolute error",
+  "asymmetry",
+  "wave skewness",
+  "cyclone",
+  "tropical cyclone",
+  "coastal ocean circulation model",
+  "rans",
+  "reynolds averaged navier stokes equations",
+  "pinn",
+  "simulation model",
+  "mesh-free approach",
+  "still water level",
+  "period",
+  "mean sea level"
+ ],
+ "add": {
+  "tke": "turbulent kinetic energy",
+  "sph": "smoothed particle hydrodynamics",
+  "roms": "regional ocean modeling system",
+  "rans": "reynolds averaged navier stokes equations"
+ }
+}
